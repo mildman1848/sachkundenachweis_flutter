@@ -10,6 +10,8 @@ build/
 # Android
 android/.gradle/
 android/app/build/
+*.jks
+*.keystore
 
 # IntelliJ / VS Code
 .idea/
@@ -30,11 +32,13 @@ Thumbs.db
 # Output / Distribution
 *.apk
 *.ipa
+*.aab
 
 # Sensitive
 .env
 credentials.json
 key.properties
+firebase_options.dart
 
 # GitHub Actions cache (optional)
 .github/workflows/*.log

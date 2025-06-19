@@ -2,9 +2,9 @@
     package="com.mildman1848.sachkundenachweis">
 
     <application
-        android:name="io.flutter.app.FlutterApplication"
         android:label="Sachkundenachweis"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:name="${applicationName}">
         <activity
             android:name=".MainActivity"
             android:exported="true"

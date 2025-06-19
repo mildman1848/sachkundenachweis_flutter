@@ -5,7 +5,7 @@ publish_to: "none"
 
 environment:
   sdk: ">=3.5.0 <4.0.0"  # Dart 3.5 wird von Flutter 3.22.1 unterstützt
-  flutter: ">=3.22.2"
+  flutter: ">=3.32.4"
 
 dependencies:
   flutter:

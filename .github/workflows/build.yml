@@ -1,4 +1,4 @@
-name: Build & Release APK
+name: 📦 Build APK & Release
 
 on:
   push:
@@ -8,27 +8,32 @@ on:
 
 jobs:
   build:
-    name: Flutter Android Build & Release
+    name: 🧪 Build & Release
     runs-on: ubuntu-latest
 
     steps:
-      - name: 📥 Checkout Repository
-        uses: actions/checkout@v3
+      - name: ⬇️ Checkout Repository
+        uses: actions/checkout@v4
 
       - name: 🛠️ Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.22.1'
 
+      - name: 🧪 Check Flutter & Dart version
+        run: |
+          flutter --version
+          dart --version
+
       - name: 📦 Install Dependencies
         run: flutter pub get
 
       - name: 🔄 Upgrade all packages
         run: flutter pub upgrade
-      
+
       - name: 📝 Commit updated pubspec.lock and tag if changed
         run: |
-          version=${{ steps.changelog.outputs.version }}
+          version=$(grep version pubspec.yaml | head -n 1 | awk '{print $2}' | cut -d '+' -f1)
           tag="v$version"
 
           if git diff --quiet pubspec.lock; then
@@ -44,45 +49,13 @@ jobs:
             git push https://x-access-token:${{ secrets.GIT_TOKEN }}@github.com/${{ github.repository }} $tag
           fi
 
-      - name: 🏗️ Build APK
+      - name: 🏗️ Build Release APK
         run: flutter build apk --release
-
-      - name: 📝 Extract version and changelog
-        id: changelog
-        run: |
-          version=$(grep -m1 '^## \[' CHANGELOG.md | sed -E 's/^## \[([0-9.]+)\].*/\1/')
-          echo "📦 Version: $version"
-          echo "version=$version" >> $GITHUB_OUTPUT
-
-          body=$(awk '/^## \[/{flag=1;next}/^$/{if(flag) exit}flag' CHANGELOG.md)
-          echo "body<<EOF" >> $GITHUB_OUTPUT
-          echo "$body" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
-      - name: 🔖 Create and push Git tag
-        run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git tag v${{ steps.changelog.outputs.version }}
-          git push https://x-access-token:${{ secrets.GIT_TOKEN }}@github.com/${{ github.repository }} v${{ steps.changelog.outputs.version }}
 
       - name: 🗂 Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ steps.changelog.outputs.version }}
-          name: "Version v${{ steps.changelog.outputs.version }}"
-          body: ${{ steps.changelog.outputs.body }}
+          tag_name: v${{ steps.extract_tag.outputs.version }}
           files: build/app/outputs/flutter-apk/app-release.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
-
-      - name: 🧾 Mark CHANGELOG.md as released
-        run: |
-          version=${{ steps.changelog.outputs.version }}
-          date=$(date +%Y-%m-%d)
-          sed -i "0,/^## \[$version\]/s/^## \[$version\]/## [$version] – $date ✅ Released/" CHANGELOG.md
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git add CHANGELOG.md
-          git commit -m "📦 CHANGELOG.md für Release $version aktualisiert"
-          git push https://x-access-token:${{ secrets.GIT_TOKEN }}@github.com/${{ github.repository }} HEAD:main
